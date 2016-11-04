@@ -81,7 +81,7 @@ if(process.env.DATADOG_API_KEY){
       };
 
       let minuteCounter = function(){
-        api.datadog.gauge('actioner.per_minute', actionCounter);
+        api.datadog.gauge('actions.per_minute', actionCounter);
         api.datadog.gauge('tasks.per_minute', taskCounter);
         actionCounter = 0;
         taskCounter = 0;
@@ -96,6 +96,8 @@ if(process.env.DATADOG_API_KEY){
         minuteCounter();
       }, minuteTimeout);
 
+
+      api.log('logging metrics from this application to datadog');
       return next();
     },
 
