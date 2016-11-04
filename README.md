@@ -5,7 +5,7 @@
 - `npm install ah-datadog-plugin`
 - `./node_modules/.bin/actionhero link --name ah-datadog-plugin`
 
-We use the awesome `datadog-metrics` package.  While we might be instructing the package to send data very often, it will actually buffer the data and send it in batches.  A datadog-agent is not required.  
+We use the awesome `datadog-metrics` package.  Note: while we might be *instructing* the package to send data very often, it will actually buffer the data and send it in batches.  A datadog-agent is not required, we talk directly to the datadog API! 
 
 ## Requirements
 
@@ -36,7 +36,7 @@ datadog.gauge('memory.heapUsed', memUsage.heapUsed);
 We will report the following (queue lengths) every 5 seconds from resque/Tasks
 
 ```js
-datadog.histogram(`resque.${q}.length`, length); // 'q' is the name of hte queue
+datadog.histogram(`resque.${q}.length`, length); // 'q' is the name of the queue
 datadog.histogram(`resque._all.length`, total);
 
 ```
