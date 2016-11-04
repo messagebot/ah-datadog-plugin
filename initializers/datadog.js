@@ -61,7 +61,24 @@ if(process.env.DATADOG_API_KEY){
         api.datadog.gauge('memory.heapUsed', memUsage.heapUsed);
       };
 
-      timer = setInterval(collectMemoryStats, timeout);
+      let collectTaskStats = function(){
+        api.tasks.details((error, resque) => {
+          if(error){ throw error; }
+          let total = 0;
+          Object.keys(resque.queues).forEach((q) => {
+            let length = resque.queues[q].length;
+            api.datadog.histogram(`resque.${q}.length`, length);
+            total = total  + length;
+          });
+          api.datadog.histogram(`resque._all.length`, total);
+        });
+      };
+
+      timer = setInterval(() => {
+        collectMemoryStats();
+        collectTaskStats();
+      }, timeout);
+
       return next();
     },
 
