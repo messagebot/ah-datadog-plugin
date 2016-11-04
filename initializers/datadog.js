@@ -1,8 +1,12 @@
 if(process.env.DATADOG_API_KEY){
 
   const datadog = require('datadog-metrics');
-  let timer;
-  let timeout = 5 * 1000;
+  let memoryTimer;
+  let memoryTimeout = 5 * 1000;
+  let minuteTimer;
+  let minuteTimeout = 60 * 1000;
+  let actionCounter = 0;
+  let taskCounter = 0;
 
   module.exports = {
     initialize: function(api, next){
@@ -25,6 +29,7 @@ if(process.env.DATADOG_API_KEY){
           next();
         },
         postProcessor: function(data, next){
+          actionCounter++;
           let duration = ((new Date).getTime() - data.datadog.startTime) / 1000;
           api.datadog.histogram('actions._all.duration', duration);
           api.datadog.histogram(`actions.${data.params.action}.duration`, duration);
@@ -42,6 +47,7 @@ if(process.env.DATADOG_API_KEY){
           next();
         },
         postProcessor: function(next){
+          taskCounter++;
           let worker = this.worker;
           let duration = ((new Date).getTime() - worker.datadog.startTime) / 1000;
           api.datadog.histogram('tasks._all.duration', duration);
@@ -74,16 +80,28 @@ if(process.env.DATADOG_API_KEY){
         });
       };
 
-      timer = setInterval(() => {
+      let minuteCounter = function(){
+        api.datadog.gauge('actioner.per_minute', actionCounter);
+        api.datadog.gauge('tasks.per_minute', taskCounter);
+        actionCounter = 0;
+        taskCounter = 0;
+      }
+
+      memoryTimer = setInterval(() => {
         collectMemoryStats();
         collectTaskStats();
-      }, timeout);
+      }, memoryTimeout);
+
+      minuteTimer = setInterval(() => {
+        minuteCounter();
+      }, minuteTimeout);
 
       return next();
     },
 
     stop: function(api, next){
-      clearInterval(timer);
+      clearInterval(memoryTimer);
+      clearInterval(minuteTimer);
       return next();
     }
   };
