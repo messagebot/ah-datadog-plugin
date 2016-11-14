@@ -1,3 +1,5 @@
+"use strict";
+
 if(process.env.DATADOG_API_KEY){
 
   const datadog = require('datadog-metrics');
